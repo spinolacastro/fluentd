@@ -1,0 +1,27 @@
+<source>
+    type tail
+    path /var/log/haproxy.log
+    pos_file /var/log/haproxy.pos
+    format /^(?<time>.+) (?<status_code>\d+) (?<f_end>[\w-]+) (?<b_end>[\w-]+) (?<c_ip>[\w\.]+):(?<c_port>\d+) (?<b_server>[\w-]+) (?<bytes_received>\d+) (?<bytes_sent>\d+)$/
+    tag haproxy.http
+    #time_format %b %d %H:%M:%S
+</source>
+
+<match haproxy.*>
+  type azurestorage
+  azure_storage_account    ${STORAGE_ACCOUNT}
+  azure_storage_access_key ${STORAGE_ACCOUNT_ACCESS_KEY}
+  azure_container          logs
+  azure_storage_type       blob
+  store_as                 json
+  format                   json
+  include_time_key         true
+  time_key                 log_time
+  auto_create_container    true
+  path                     haproxy/
+  azure_object_key_format  %{path}%{time_slice}/haproxy_%{index}.%{file_extension}
+  buffer_path              /tmp/azurestorage
+  time_slice_format        %Y/%m/%d/%H
+  time_slice_wait          10m
+  utc
+</match>

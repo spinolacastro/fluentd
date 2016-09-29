@@ -15,20 +15,27 @@ LABEL io.k8s.description="Fluentd container for collecting haproxy router logs" 
 
 RUN rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \
     yum install -y --setopt=tsflags=nodocs \
-      gcc-c++ \
-      ruby \
-      ruby-devel \
-      libcurl-devel \
-      zlib-devel \
-      make && \
+    gcc-c++ \
+    ruby \
+    ruby-devel \
+    iproute \
+    rsyslog \
+    gettext \
+    libcurl-devel \
+    zlib-devel \
+    make && \
     yum clean all
+
 RUN mkdir -p ${HOME} && \
     gem install --no-rdoc --no-ri \
       --conservative --minimal-deps \
       fluentd:${FLUENTD_VERSION} \
       fluent-plugin-azurestorage
 
-ADD fluent.conf /etc/fluent/
+RUN rm -f /etc/rsyslog.d/listen.conf
+
+ADD fluent.template /etc/fluent/
+ADD rsyslog.conf /etc/
 ADD run.sh ${HOME}/
 
 WORKDIR ${HOME}
